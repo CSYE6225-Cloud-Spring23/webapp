@@ -1,10 +1,17 @@
+import os
+import re
 import mysql.connector
 from mysql.connector import Error
 import security
 import datetime
+from dotenv import load_dotenv
 
+load_dotenv()
 
-def create_connection(host_name, user_name, user_password):  ##Function for  Creating DB Connection using mysql connector
+def create_connection():  ##Function for  Creating DB Connection using mysql connector
+    host_name = os.getenv("DB_HOSTNAME")
+    user_name = os.getenv("DB_UNAME")
+    user_password = os.getenv("DB_PWD")
     connection = None
     
     try:
@@ -42,7 +49,7 @@ def execute_read_query(connection, query):  ##Function for read Query
         print(f"The error '{e}' occurred")
 
 def get_id():
-    connection = create_connection("localhost", "root", "root")
+    connection = create_connection()
     
     count_query = "Select count(*) from users_table;"
     res = execute_read_query(connection, count_query)
@@ -63,7 +70,7 @@ def create_user(first_name, last_name, password, user_name):
     account_created = datetime.datetime.isoformat(datetime.datetime.now())
     account_updated = datetime.datetime.isoformat(datetime.datetime.now())
     access_token = security.get_encoded_token(user_name+":"+password)
-    connection = create_connection("localhost", "root", "root")
+    connection = create_connection()
     _id = get_id()
     create_users = """INSERT INTO `users_table` (`id`, `first_name`, `last_name`, `password`, `username`, `account_created`, `account_updated`, `access_token`) VALUES ('{0}', '{1}', '{2}', '{3}', '{4}', '{5}', '{6}', '{7}');""".format(
         _id, first_name, last_name, encrypted_password, user_name, account_created, account_updated, access_token)
@@ -80,7 +87,8 @@ def create_user(first_name, last_name, password, user_name):
 def fetch_user(user_id):
     resp_json = {}
 
-    connection = create_connection("localhost", "root", "root")
+    connection = create_connection()
+
 
     fetch_query = "Select * from users_table where id={0};".format(user_id)
 
@@ -94,7 +102,7 @@ def fetch_user(user_id):
         0: 'id',
         1: 'first_name',
         2: 'last_name',
-        4: 'user_name',
+        3: 'user_name',
         5: 'account_created',
         6: 'account_updated',
     }
@@ -106,10 +114,10 @@ def fetch_user(user_id):
 
 def update_user(user_id, first_name, last_name, password):    #Function To Update User
 
-    connection = create_connection("localhost", "root", "root")
+    connection = create_connection()
     flag = False
     update_query = "update users_table set "
-    import ipdb; ipdb.set_trace()
+    
     if first_name:
         flag = True
         update_query = update_query + "first_name='{0}', ".format(first_name)
@@ -137,7 +145,7 @@ def update_user(user_id, first_name, last_name, password):    #Function To Updat
 
 def validate_user(token):
     token = token.replace("Basic ","")
-    connection = create_connection("localhost", "root", "root")
+    connection = create_connection()
     fetch_query = "Select * from users_table where access_token='{0}';".format(token)
     print (fetch_query)
     results = execute_read_query(connection, fetch_query)
