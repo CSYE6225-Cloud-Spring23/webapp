@@ -109,7 +109,7 @@ def update_user(user_id, first_name, last_name, password):    #Function To Updat
     connection = create_connection("localhost", "root", "root")
     flag = False
     update_query = "update users_table set "
-
+    import ipdb; ipdb.set_trace()
     if first_name:
         flag = True
         update_query = update_query + "first_name='{0}', ".format(first_name)
