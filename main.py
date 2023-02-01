@@ -52,6 +52,37 @@ def create_user():
     return Response(json.dumps(resp_json), status=201, mimetype='application/json')
 
 
+@app.route('/v1/user/<user_id>', methods=['GET', 'PUT'])
+def fetch_user(user_id):
+
+    token = request.headers.get("Authorization")
+    if not token:
+        return Response(str("Bad request"), status=400, mimetype='application/json')
+    
+    user_token = DbConfig.validate_user(token)
+    if user_token != user_id:
+        return Response(str("Unauthorized"), status=401, mimetype='application/json')
+
+    if request.method == 'GET':
+        result = DbConfig.fetch_user(user_id)
+
+        print(result)
+        return Response(json.dumps(result, default=str), status=200, mimetype='application/json')
+
+    if request.method == 'PUT':
+
+        if "username" in request.json:
+            return Response(str("Cannot update username"), status=400, mimetype='application/json')
+
+        first_name = request.json.get('first_name')
+        last_name = request.json.get('last_name')
+        password = request.json.get('password')
+
+        DbConfig.update_user(user_id, first_name, last_name, password)
+
+        return Response(str("Done"), status=204, mimetype='application/json')
+
+
 
 
 if __name__ == '__main__':
