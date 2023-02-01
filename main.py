@@ -57,8 +57,9 @@ def fetch_user(user_id):
 
     token = request.headers.get("Authorization")
     if not token:
-        return Response(str("Bad request"), status=400, mimetype='application/json')
+        return Response(str("Bad request"), status=40, mimetype='application/json')
     
+
     user_token = DbConfig.validate_user(token)
     if user_token != user_id:
         return Response(str("Unauthorized"), status=401, mimetype='application/json')
