@@ -90,7 +90,7 @@ Endpoint: /v1/user
 
 Method: PUT
 
-Request Body: Type JSON
+Request Body: Type JSON file
 
 {
     "first_name": "Name(Char)",
