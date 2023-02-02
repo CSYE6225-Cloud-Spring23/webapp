@@ -78,7 +78,7 @@ Description: Health Endpoint
 
 Method: GET
 
-STATUS:  server responds with 200 OK if it is healhty.
+STATUS:  server responds with 200 OK if it is healthy.
 
 
 ____________________________________________________________________
@@ -169,6 +169,7 @@ After Successfull Creation returns with Code 200 after  Details  Being Updated
  
 }
 
+
 In case  no  UserId  provided Returns with Status 400 (Bad Request)
 
 
@@ -176,5 +177,5 @@ For invalid userId  Returns with Status 401
 
 For Successfull returns with response 200
 
-__
+_____________________________________________________
 
