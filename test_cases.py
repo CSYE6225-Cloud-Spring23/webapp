@@ -4,7 +4,7 @@ from validator import email_validation
 
 def test_email():
     response = email_validation("abc@gmail.com")
-    assert response == False
+    assert response == True
 
 
 
