@@ -1,5 +1,12 @@
+import datetime
 import os
+import sqlalchemy
+from sqlalchemy.orm import Session
+from sqlalchemy.exc import IntegrityError, NoResultFound
+from sqlalchemy import create_engine, select
+from Schemas import User,Product
 import re
+import authenticator
 import mysql.connector
 from mysql.connector import Error
 import security
@@ -8,149 +15,204 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-def create_connection():  ##Function for  Creating DB Connection using mysql connector
-    host_name = os.getenv("DB_HOSTNAME")
-    user_name = os.getenv("DB_UNAME")
-    user_password = os.getenv("DB_PWD")
-    connection = None
-    
+
+DATABASE_URL = os.getenv("DATABASE_URL")
+
+engine = create_engine(DATABASE_URL)
+
+
+
+def get_user(user_id):
+    response_json = {}
+
+    session = Session(engine)
+
+    stmt = select(User).where(User.id.in_([user_id]))
     try:
-        connection = mysql.connector.connect(
-            host=host_name,
-            user=user_name,
-            passwd=user_password,
-            database="csye_cloud"
-        )
-        print("Connection to MySQL DB successful")
-    except Error as e:
-        print(f"The error '{e}' occurred")
+        for user in session.scalars(stmt):
+            response_json["id"] = user.id
+            response_json["first_name"] = user.first_name
+            response_json["last_name"] = user.last_name
+            response_json["username"] = user.username
+            response_json["account_created"] = user.account_created
+            response_json["account_updated"] = user.account_updated
+    except NoResultFound:
+        return {}
 
-    return connection
-
-
-def execute_query(connection, query):   ##Function for Executing Query
-    cursor = connection.cursor()
-    try:
-        cursor.execute(query)
-        connection.commit()
-        print("Query executed successfully")
-    except Error as e:
-        print(f"The error '{e}' occurred")
+    return response_json
 
 
-def execute_read_query(connection, query):  ##Function for read Query
-    cursor = connection.cursor()
-    result = None
-    try:
-        cursor.execute(query)
-        result = cursor.fetchall()
-        return result
-    except Error as e:
-        print(f"The error '{e}' occurred")
-
-def get_id():
-    connection = create_connection()
-    
-    count_query = "Select count(*) from users_table;"
-    res = execute_read_query(connection, count_query)
-
-    if res:
-        return res[0][0]+1
-    
-    return 1
 
 
-def create_user(first_name, last_name, password, user_name):
-    resp_json = {}
-    resp_json['fisrt_name'] = first_name
-    resp_json['last_name'] = last_name
-    resp_json['user_name'] = user_name
-   
-    encrypted_password = security.get_bcrypt_password(password)
+def fetch_id(model):                                    ##Total number of id count +1 
+    session = Session(engine)
+    _id = session.query(model.id).count() + 1
+    session.close()
+    return _id
+
+
+
+
+def user_create(first_name, last_name, password, user_name):
+    response_json = {}
+    response_json['fisrt_name'] = first_name
+    response_json['last_name'] = last_name
+    response_json['user_name'] = user_name
+    encrypted_password = authenticator.get_bcrypt_password(password)
     account_created = datetime.datetime.isoformat(datetime.datetime.now())
     account_updated = datetime.datetime.isoformat(datetime.datetime.now())
-    access_token = security.get_encoded_token(user_name+":"+password)
-    connection = create_connection()
-    _id = get_id()
-    create_users = """INSERT INTO `users_table` (`id`, `first_name`, `last_name`, `password`, `username`, `account_created`, `account_updated`, `access_token`) VALUES ('{0}', '{1}', '{2}', '{3}', '{4}', '{5}', '{6}', '{7}');""".format(
-        _id, first_name, last_name, encrypted_password, user_name, account_created, account_updated, access_token)
+    access_token = authenticator.get_encoded_token(user_name+":"+password)
 
-    print(create_users)
-    execute_query(connection, create_users)
+    _id = fetch_id(User)
+    try:
+        user = User(id=_id, first_name=first_name, last_name=last_name, password=encrypted_password, username=user_name, account_created=account_created, 
+                    account_updated=account_updated, access_token=access_token)
 
-    resp_json['account_created'] = account_created
-    resp_json['account_updated'] = account_updated
+        session = Session(engine)
 
-    return resp_json
+        session.add(user)
+        session.commit()
+        session.close()
+    except IntegrityError:
+        return "User Already Exists"
+    except Exception:
+        return "Error Creating User"
+    response_json["id"] = _id
+    response_json['account_created'] = account_created
+    response_json['account_updated'] = account_updated
+ 
+    return response_json
+
 
 
 def fetch_user(user_id):
     resp_json = {}
 
-    connection = create_connection()
+    session = Session(engine)
 
-
-    fetch_query = "Select * from users_table where id={0};".format(user_id)
-
-    results = execute_read_query(connection, fetch_query)
-
-    result = ()
-    if not results:
-        return None
-
-    field_list = {
-        0: 'id',
-        1: 'first_name',
-        2: 'last_name',
-        3: 'user_name',
-        5: 'account_created',
-        6: 'account_updated',
-    }
-    for k, v in field_list.items():
-        resp_json[v] = results[0][k]
+    stmt = select(User).where(User.id.in_([user_id]))
+    try:
+        for user in session.scalars(stmt):
+            resp_json["id"] = user.id
+            resp_json["first_name"] = user.first_name
+            resp_json["last_name"] = user.last_name
+            resp_json["username"] = user.username
+            resp_json["accorunt_created"] = user.account_created
+            resp_json["account_updated"] = user.account_updated
+    except NoResultFound:
+        return {}
 
     return resp_json
 
 
-def update_user(user_id, first_name, last_name, password):    #Function To Update User
-
-    connection = create_connection()
+def modify_user(user_id, first_name, last_name, password):
     flag = False
-    update_query = "update users_table set "
-    
+
+    session = Session(engine)
+
+    query = select(User).where(User.id == user_id)
+
+    user = session.scalars(query).one()
+
     if first_name:
         flag = True
-        update_query = update_query + "first_name='{0}', ".format(first_name)
-    
+        user.first_name = first_name
+
     if last_name:
         flag = True
-        update_query = update_query + "last_name='{0}', ".format(last_name)
-    
+        user.last_name = last_name
+
     if password:
         flag = True
-        encrypted_password = security.get_bcrypt_password(password)
-        update_query = update_query  + "password='{0}', ".format(encrypted_password)
-    
+        encrypted_password = authenticator.get_bcrypt_password(password)
+        access_token = authenticator.get_encoded_token(
+            user.username+":"+password)
+        user.password = encrypted_password
+        user.access_token = access_token
+
     if flag:
         account_updated = datetime.datetime.isoformat(datetime.datetime.now())
-        update_query = update_query + "account_updated='{0}'".format(account_updated)
+        user.account_updated = account_updated
 
-    if update_query.endswith(", "):
-        update_query = update_query[:-2]
-    update_query = update_query + " where id={0};".format(user_id)
-
-    print (update_query)
-    execute_query(connection, update_query)
+    session.commit()
+    session.close()
 
 
-def validate_user(token):
-    token = token.replace("Basic ","")
-    connection = create_connection()
-    fetch_query = "Select * from users_table where access_token='{0}';".format(token)
-    print (fetch_query)
-    results = execute_read_query(connection, fetch_query)
-    if not results:
-        return None
+def user_validation(token):
+    token = token.replace("Basic ", "")
+
+    session = Session(engine)
+    query = select(User).where(User.access_token.in_([token]))
+    try:
+        user = session.scalars(query).one()
+        session.close()
+        return user.id
+    except NoResultFound:
+        return ""
     
-    else:
-        return str(results[0][0])
+
+
+
+def get_product(product_id):
+    session = Session(engine)
+    query = select(Product).where(Product.id == product_id)
+    try:
+        product = session.scalars(query).one()
+    except NoResultFound:
+        return {}
+    pro_json = {}
+
+    pro_json['id'] = product.id
+    pro_json['name'] = product.name
+    pro_json['description'] = product.description
+    pro_json['sku'] = product.sku
+    pro_json['manufacturer'] = product.manufacturer
+    pro_json['quantity'] = product.quantity
+    pro_json['date_added'] = product.date_added
+    pro_json['date_updated'] = product.date_last_updated
+    pro_json['owner_user_id'] = product.owner_user_id
+
+    session.close()
+
+    return pro_json
+
+
+
+def owner_check(user_id, product_id):
+    session = Session(engine)
+
+    query = select(Product).where(Product.id == product_id)
+
+    product = session.scalars(query).one()
+
+    session.close()
+    if product.owner_user_id == user_id:
+        return True
+    return False
+
+
+def del_product(product_id):
+    session = Session(engine)
+
+    query = select(Product).where(Product.id == product_id)
+
+    product = session.scalars(query).one()
+
+    session.delete(product)
+    session.commit()
+    session.close()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
