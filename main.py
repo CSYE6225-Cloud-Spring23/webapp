@@ -158,7 +158,31 @@ def delete_product(product_id):
     return Response(str("Product has been Deleted"), status=204, mimetype='application/json')
 
 
+@app.route("/v1/product/<int:product_id>", methods=["PUT", "PATCH"])
+def update_product(product_id):
+    token = request.headers.get("Authorization")
+    if not token:
+        return Response(str("Bad Request"), status=400, mimetype='application/json')
 
+    user_token = DbConfig.user_validation(token)
+
+    product = DbConfig.get_product(product_id)
+    if not product:
+        return Response(str("Bad Request"), status=400, mimetype='application/json')
+
+    if product.get("owner_user_id") != user_token:
+        return Response(str("Not Authorized"), status=401, mimetype='application/json')
+
+    name = request.json.get("name", "")
+    description = request.json.get("description", "")
+    sku = request.json.get("sku", "")
+    manufacturer = request.json.get("manufacturer", "")
+    quantity = request.json.get("quantity", "")
+
+    flag = DbConfig.modify_product(
+        product_id, name, description, sku, manufacturer, quantity)
+
+    return Response(str("Product Details  Modified"), status=204, mimetype='application/json')
 
 
 
