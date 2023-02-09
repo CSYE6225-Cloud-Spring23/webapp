@@ -55,10 +55,12 @@ def fetch_id(model):                                    ##Total number of id cou
 
 
 def user_create(first_name, last_name, password, user_name):
+    
     resp_json = {}
+    
     resp_json['fisrt_name'] = first_name
-    resp_json['last_name'] = last_name
-    resp_json['user_name'] = user_name
+    resp_json['last_name']  = last_name
+    resp_json['user_name']  = user_name
     encrypted_password = security.get_bcrypt_password(password)
     account_created = datetime.datetime.isoformat(datetime.datetime.now())
     account_updated = datetime.datetime.isoformat(datetime.datetime.now())
@@ -67,7 +69,7 @@ def user_create(first_name, last_name, password, user_name):
     _id = fetch_id(User)
     try:
         user = User(id=_id, first_name=first_name, last_name=last_name, password=encrypted_password,
-                    username=user_name, account_created=account_created, account_updated=account_updated, access_token=access_token)
+                    username=user_name, account_created=account_created, account_updated=account_updated)
 
         session = Session(engine)
 
@@ -76,7 +78,8 @@ def user_create(first_name, last_name, password, user_name):
         session.close()
     except IntegrityError:
         return "Exists"
-    except Exception:
+    except Exception as e:
+        print (e)
         return "Error"                                          ## Why Just Id
     resp_json["id"] = _id
     resp_json['account_created'] = account_created
@@ -126,10 +129,8 @@ def modify_user(user_id, first_name, last_name, password):
     if password:
         flag = True
         encrypted_password = security.get_bcrypt_password(password)
-        access_token = security.get_encoded_token(
-            user.username+":"+password)
         user.password = encrypted_password
-        user.access_token = access_token
+        
 
     if flag:
         account_updated = datetime.datetime.isoformat(datetime.datetime.now())
