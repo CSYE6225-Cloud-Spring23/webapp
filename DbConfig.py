@@ -142,12 +142,21 @@ def modify_user(user_id, first_name, last_name, password):
 def user_validation(token):
     token = token.replace("Basic ", "")
 
+    user_name, password = security.get_decoded_token(token)
+
+
     session = Session(engine)
-    query = select(User).where(User.access_token.in_([token]))
+    query = select(User).where(User.username == user_name)
     try:
         user = session.scalars(query).one()
         session.close()
-        return user.id
+
+        stored_password = user.password
+
+        if security.password_check(password, stored_password):
+            return user.id
+        else:
+            return ""
     except NoResultFound:
         return ""
     

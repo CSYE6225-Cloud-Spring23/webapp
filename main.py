@@ -131,6 +131,37 @@ def create_product():
 
 
 
+@app.route('/v1/product/<int:product_id>')
+def get_product(product_id):
+    product = DbConfig.get_product(product_id)
+    if not product:
+        return Response(str("Not Found"), status=404, mimetype='application/json')
+    return Response(json.dumps(product, default=str), status=200, mimetype='application/json')
+
+
+@app.route("/v1/product/<int:product_id>", methods=["DELETE"])
+def delete_product(product_id):
+    token = request.headers.get("Authorization")
+    if not token:
+        return Response(str("Bad Request"), status=400, mimetype='application/json')
+
+    user_token = DbConfig.user_validation(token)
+
+    if not DbConfig.get_product(product_id):
+        return Response(str("Not Found"), status=404, mimetype='application/json')
+
+    if not DbConfig.owner_check(user_token, product_id):
+        return Response(str("Unauthorized"), status=401, mimetype='application/json')
+
+    flag = DbConfig.del_product(product_id)
+
+    return Response(str("Product has been Deleted"), status=204, mimetype='application/json')
+
+
+
+
+
+
 
 
 
