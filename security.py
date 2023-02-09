@@ -11,6 +11,17 @@ def get_encoded_token(password):
     return token
 
 
+def get_decoded_token(token):
+    decoded_token = bytes.decode(base64.b64decode(token.encode()))
+    decoded_token = decoded_token.split(":")
+    return decoded_token[0], decoded_token[1]
+
+
+def password_check(password, stored_password):
+    return bcrypt.checkpw(password.encode(), stored_password.encode())
+
+
+
 def get_bcrypt_password(password):
 
     salt = bcrypt.gensalt()
