@@ -41,11 +41,9 @@ Create Enviornment File
 
 
 
-DATABASE_HOSTNAME=localhost
-DATABASE_UNAME=root
-DATABASE_PWD=root
-DATABASE= CSYE_CLOUD
-
+DATABASE_URL=mysql://root:root@localhost/CSYE_CLOUD2
+APP_HOST=localhost
+APP_PORT=5000
 
 To start Application Run Below Command
 
@@ -178,3 +176,55 @@ For Successfull returns with response 200
 
 __
 
+Endpoint   : /v1/user/{userId}
+
+
+Update User's account information
+
+
+
+----------------------------------------------------
+
+
+Endpoint   /v1/product
+
+Creates a user account
+
+Method: POST
+
+
+
+-----------------------------------------------------------
+
+
+Endpoint   /v1/product/{productId}
+
+Method: PUT
+
+
+Update Product
+
+
+---------------------------------------------------------------------
+
+Endpoint    /v1/product/{productId}
+
+
+Method: PUT
+
+
+Update Patch
+
+-----------------------------------------------------
+
+
+Endpoint  /v1/product/{productId}
+
+
+Method: PUT
+
+
+Update Patch
+
+
+----------------------------------------------------------------------
