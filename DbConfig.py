@@ -6,7 +6,8 @@ from sqlalchemy.exc import IntegrityError, NoResultFound
 from sqlalchemy import create_engine, select
 from Schemas import User,Product
 import re
-import authenticator
+
+
 import mysql.connector
 from mysql.connector import Error
 import security
@@ -22,7 +23,7 @@ engine = create_engine(DATABASE_URL)
 
 
 
-def get_user(user_id):
+def get_user(user_id):  
     response_json = {}
 
     session = Session(engine)
@@ -54,19 +55,19 @@ def fetch_id(model):                                    ##Total number of id cou
 
 
 def user_create(first_name, last_name, password, user_name):
-    response_json = {}
-    response_json['fisrt_name'] = first_name
-    response_json['last_name'] = last_name
-    response_json['user_name'] = user_name
-    encrypted_password = authenticator.get_bcrypt_password(password)
+    resp_json = {}
+    resp_json['fisrt_name'] = first_name
+    resp_json['last_name'] = last_name
+    resp_json['user_name'] = user_name
+    encrypted_password = security.get_bcrypt_password(password)
     account_created = datetime.datetime.isoformat(datetime.datetime.now())
     account_updated = datetime.datetime.isoformat(datetime.datetime.now())
-    access_token = authenticator.get_encoded_token(user_name+":"+password)
+    access_token = security.get_encoded_token(user_name+":"+password)
 
     _id = fetch_id(User)
     try:
-        user = User(id=_id, first_name=first_name, last_name=last_name, password=encrypted_password, username=user_name, account_created=account_created, 
-                    account_updated=account_updated, access_token=access_token)
+        user = User(id=_id, first_name=first_name, last_name=last_name, password=encrypted_password,
+                    username=user_name, account_created=account_created, account_updated=account_updated, access_token=access_token)
 
         session = Session(engine)
 
@@ -74,14 +75,14 @@ def user_create(first_name, last_name, password, user_name):
         session.commit()
         session.close()
     except IntegrityError:
-        return "User Already Exists"
+        return "Exists"
     except Exception:
-        return "Error Creating User"
-    response_json["id"] = _id
-    response_json['account_created'] = account_created
-    response_json['account_updated'] = account_updated
- 
-    return response_json
+        return "Error"                                          ## Why Just Id
+    resp_json["id"] = _id
+    resp_json['account_created'] = account_created
+    resp_json['account_updated'] = account_updated
+    
+    return resp_json
 
 
 
@@ -124,8 +125,8 @@ def modify_user(user_id, first_name, last_name, password):
 
     if password:
         flag = True
-        encrypted_password = authenticator.get_bcrypt_password(password)
-        access_token = authenticator.get_encoded_token(
+        encrypted_password = security.get_bcrypt_password(password)
+        access_token = security.get_encoded_token(
             user.username+":"+password)
         user.password = encrypted_password
         user.access_token = access_token
@@ -199,6 +200,84 @@ def del_product(product_id):
     product = session.scalars(query).one()
 
     session.delete(product)
+    session.commit()
+    session.close()
+
+
+
+
+def create_product(product_info, user_id):
+
+    response_json = {}
+    _id = fetch_id(Product)
+    response_json["id"] = _id
+
+    response_json['name'] = product_info.get("name")
+    response_json['description'] = product_info.get("description")
+    response_json['sku'] = product_info.get("sku")
+    response_json['manufacturer'] = product_info.get("manufacturer")
+    response_json['quantity'] = product_info.get("quantity")
+
+    date_created = datetime.datetime.isoformat(datetime.datetime.now())
+    date_last_updated = datetime.datetime.isoformat(datetime.datetime.now())
+
+    response_json["date_added"] = date_created
+    response_json["date_last_updated"] = date_last_updated
+    response_json["owner_user_id"] = user_id
+    try:
+        user = Product(id=_id, name=response_json["name"], description=response_json["description"],
+                       sku=response_json["sku"], manufacturer=response_json.get("manufacturer", ""), quantity=response_json.get("quantity"), date_added=date_created, date_last_updated=date_last_updated, owner_user_id=user_id)
+
+        session = Session(engine)
+
+        session.add(user)
+        session.commit()
+        session.close()
+    except IntegrityError:
+        return "User Already Exists"
+    except Exception as e:
+        print(e)
+        return "Error Creating User"
+
+  
+    return response_json
+
+
+
+def modify_product(product_id, name, description, sku, manufacturer, quantity):
+    session = Session(engine)
+
+    query = select(Product).where(Product.id == product_id)
+    try:
+        product = session.scalars(query).one()
+    except NoResultFound:
+        return ""
+    flag = False
+    if name:
+        product.name = name
+        flag = True
+
+    if description:
+        product.description = description
+        flag = True
+
+    if sku:
+        product.sku = sku
+        flag = True
+
+    if manufacturer:
+        product.manufacturer = manufacturer
+        flag = True
+
+    if quantity:
+        product.quantity = quantity
+        flag = True
+
+    if flag:
+        date_last_updated = datetime.datetime.isoformat(
+            datetime.datetime.now())
+        product.date_last_updated = date_last_updated
+
     session.commit()
     session.close()
 
