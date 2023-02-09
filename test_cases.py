@@ -1,4 +1,3 @@
-import DbConfig
 from validator import email_validation
 
 
