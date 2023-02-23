@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  Packer_Deploy:
+  build:
     runs-on: ubuntu-latest
 
     steps:
