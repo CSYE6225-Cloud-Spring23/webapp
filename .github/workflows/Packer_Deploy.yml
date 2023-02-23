@@ -2,11 +2,11 @@ name: Packer Deploy
 
 on:
   pull_request:
-   types: [closed]
+    branches: [ main ]
   workflow_dispatch:
 
 jobs:
-  build:
+  Packer_Deploy:
     runs-on: ubuntu-latest
 
     steps:
@@ -15,15 +15,8 @@ jobs:
         
     - name: Zip repository
       run: |
-        mkdir -p dist
-        git archive --format=zip HEAD -o dist/webapp.zip
-
-    - name: Upload artifact
-      uses: actions/upload-artifact@v2
-      with:
-        name: my-repo
-        path: dist/webapp.zip
-
+        zip -r webapp.zip .
+        
     - name: Packer Init
       run: packer init .
 
@@ -32,3 +25,8 @@ jobs:
       with:
           aws-access-key-id: ${{ secrets.ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.SECRET_ACCESS_KEY }}
+          aws-region : 'us-east-1'
+
+      name: Packer Build
+      run:
+           packer build ami.pkr.hcl
