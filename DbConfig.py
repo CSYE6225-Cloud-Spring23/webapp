@@ -290,18 +290,3 @@ def modify_product(product_id, name, description, sku, manufacturer, quantity):
 
     session.commit()
     session.close()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
