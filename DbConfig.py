@@ -3,7 +3,7 @@ import os
 import sqlalchemy
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError, NoResultFound
-from sqlalchemy import create_engine, select
+from sqlalchemy import create_engine, select, text
 from Schemas import User,Product
 import re
 
@@ -20,6 +20,12 @@ load_dotenv()
 DATABASE_URL = os.getenv("DATABASE_URL")
 
 engine = create_engine(DATABASE_URL)
+
+conn = engine.connect()
+create_database_query = text("CREATE DATABASE IF NOT EXISTS webapp")
+conn.execute(create_database_query)
+
+engine = create_engine(DATABASE_URL+"/webapp")
 
 
 
@@ -290,3 +296,18 @@ def modify_product(product_id, name, description, sku, manufacturer, quantity):
 
     session.commit()
     session.close()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
