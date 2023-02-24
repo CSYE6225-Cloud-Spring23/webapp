@@ -44,11 +44,9 @@ mysql -uroot -p"$root_temp_pass" --connect-expired-password <mysql_secure_instal
 
 unzip webapp.zip
 
-cd webapp
-
 pip3 install -r requirements.txt
 
-sudo cp /home/ec2-user/webapp/webapp.service /etc/systemd/system/webapp.service
+sudo cp /home/ec2-user/webapp.service /etc/systemd/system/webapp.service
 
 sudo systemctl daemon-reload
 
