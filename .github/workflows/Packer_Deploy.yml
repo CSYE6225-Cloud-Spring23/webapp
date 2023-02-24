@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  Packers:
+
     runs-on: ubuntu-latest
 
     steps:
@@ -25,8 +25,4 @@ jobs:
       with:
           aws-access-key-id: ${{ secrets.ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.SECRET_ACCESS_KEY }}
-          aws-region: 'us-east-1'
-          
-    - name: Packer Build
-      run: |
-        packer build ami.pkr.hcl
+
