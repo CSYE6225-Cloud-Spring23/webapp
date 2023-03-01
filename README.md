@@ -1,6 +1,6 @@
 
 
-## CSYE 6225 - Spring'23
+## CSYE 6225 - Spring'2023
 
 
 # Network Structures and Cloud Computing 
