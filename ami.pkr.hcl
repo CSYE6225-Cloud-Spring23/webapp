@@ -29,7 +29,7 @@ variable "ssh-user" {
 
 variable "subnet" {
   type    = string
-  default = "subnet-0b35e0574749a573f"
+  default = "subnet-0b42409bf10a29adf"
 }
 
 
