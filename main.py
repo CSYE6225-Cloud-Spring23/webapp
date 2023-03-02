@@ -28,6 +28,8 @@ DATABASE_URL = os.getenv("DATABASE_URL")
 
 UPLOAD_FOLDER = os.path.join(app.instance_path, 'uploads')
 
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
 engine = create_engine(DATABASE_URL)
 
 conn = engine.connect()
