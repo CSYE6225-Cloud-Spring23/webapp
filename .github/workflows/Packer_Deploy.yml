@@ -1,7 +1,7 @@
 name: Packer Deploy
 
 on:
-  push_request:
+  push:
     branches: [ main ]
   workflow_dispatch:
 
