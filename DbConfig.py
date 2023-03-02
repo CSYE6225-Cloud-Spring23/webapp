@@ -57,9 +57,11 @@ def get_user(user_id):
 
 def fetch_id(model):                                    ##Total number of id count +1 
     session = Session(engine)
-    _id = session.query(model.id).count() + 1
-    session.close()
-    return _id
+    stmt = select(Image).order_by(Image.image_id.desc())
+    objs = session.scalars(stmt)
+    for i in objs:
+        return i.image_id
+    return 1
 
 
 
