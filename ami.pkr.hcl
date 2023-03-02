@@ -20,6 +20,7 @@ variable "profile" {
 variable "source_ami" {
   type    = string
   default = "ami-0dfcb1ef8550277af"
+  
 }
 
 variable "ssh-user" {
@@ -29,7 +30,7 @@ variable "ssh-user" {
 
 variable "subnet" {
   type    = string
-  default = "subnet-0b35e0574749a573f"
+  default = "subnet-0b42409bf10a29adf"
 }
 
 
@@ -89,11 +90,11 @@ build {
 
   provisioner "shell" {
     script = "installation.sh"
-    environment_vars = [
-      "DB_URL=mysql://root:Welcome!22@localhost",
-      "APP_HOST=0.0.0.0",
-      "APP_PORT=5000"
-    ]
+    # environment_vars = [
+    #   "DB_URL=mysql://root:Welcome!22@localhost",
+    #   "APP_HOST=0.0.0.0",
+    #   "APP_PORT=5000" 
+    # ]
   }
 }
 
