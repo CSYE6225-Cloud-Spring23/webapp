@@ -35,3 +35,13 @@ class Product(Base):
     date_last_updated = Column(DateTime, default=datetime.datetime.isoformat(datetime.datetime.now()))
     owner_user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
     
+
+class Image(Base):
+
+    __tablename__ = "images"
+
+    image_id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    product_id: Mapped[str] = mapped_column(String(50))
+    file_name: Mapped[str] = mapped_column(String(100))
+    date_created = Column(DateTime, default=datetime.datetime.isoformat(datetime.datetime.now()))
+    s3_bucket_path: Mapped[str] = mapped_column(String(100))

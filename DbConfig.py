@@ -4,9 +4,9 @@ import sqlalchemy
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError, NoResultFound
 from sqlalchemy import create_engine, select, text
-from Schemas import User,Product
+from Schemas import User,Product,Image
 import re
-
+import boto3
 
 import mysql.connector
 from mysql.connector import Error
@@ -20,6 +20,10 @@ load_dotenv()
 DATABASE_URL = os.getenv("DATABASE_URL")
 
 engine = create_engine(DATABASE_URL)
+
+
+
+BUCKET_NAME = os.getenv("S3_Bucket_Name")
 
 conn = engine.connect()
 create_database_query = text("CREATE DATABASE IF NOT EXISTS webapp")
@@ -296,6 +300,114 @@ def modify_product(product_id, name, description, sku, manufacturer, quantity):
 
     session.commit()
     session.close()
+
+
+
+def get_images(product_id, image_id=None):
+    session = Session(engine)
+    if image_id:
+        stmt = select(Image).where(Image.product_id ==
+                                   product_id).where(Image.image_id == image_id)
+    else:
+        stmt = select(Image).where(Image.product_id == product_id)
+
+    image_list = []
+
+    try:
+
+        images = session.scalars(stmt)
+        for i in images:
+            image = {}
+            image["image_id"] = i.image_id
+            image["product_id"] = i.product_id
+            image["file_name"] = i.file_name
+            image["date_created"] = i.date_created
+            image["s3_bucket_path"] = i.s3_bucket_path
+            image_list.append(image)
+    except NoResultFound:
+        return {}
+
+    return image_list
+
+
+
+
+
+def upload_image(image, user_token):
+    s3_client = boto3.client("s3")
+
+    # file_object = open(image)
+    image_name = os.path.basename(image)
+    key_name = "{0}/{1}".format(user_token, image_name)
+    s3_client.upload_file(image, Bucket=BUCKET_NAME, Key=key_name)
+
+    return key_name
+
+
+
+
+def insert_image_record(image, user_id, product_id):
+    resp_json = {}
+
+    resp_json['product_id'] = product_id
+    image_name = os.path.basename(image)
+    resp_json['file_name'] = image_name
+    date_created = datetime.datetime.isoformat(datetime.datetime.now())
+    resp_json["date_created"] = date_created
+    
+    image_id = fetch_id(Image)
+    resp_json['image_id'] = image_id
+    try:
+        s3_key = upload_image(image, user_id)
+        resp_json["s3_bucket_path"] = s3_key
+        image = Image(image_id=image_id, product_id=product_id,
+                      file_name=image_name, date_created=date_created, s3_bucket_path=s3_key)
+
+        session = Session(engine)
+
+        session.add(image)
+        session.commit()
+        session.close()
+
+    except IntegrityError:
+        return "Exists"
+
+    except Exception as e:
+        print(e)
+        return "Error"
+    
+    return resp_json
+
+
+def s3_delete_image(image_id, user_token):
+    s3_client = boto3.client("s3")
+    key_name = "{0}/{1}".format(user_token, image_id)
+    response = s3_client.delete_object(Bucket=BUCKET_NAME, Key=key_name)
+    if response["ResponseMetadata"]["HTTPStatusCode"] == 204:
+        return True
+    return False
+
+
+def delete_image(product_id, image_id, user_token):
+    session = Session(engine)
+
+    stmt = select(Image).where(Image.product_id ==
+                               product_id).where(Image.image_id == image_id)
+
+    image = session.scalars(stmt).one()
+
+    image_filename = image.file_name
+    status = s3_delete_image(image_filename, user_token)
+    if status:
+        session.delete(image)
+        session.commit()
+        session.close()
+        return True
+    return False
+
+
+
+
 
 
 

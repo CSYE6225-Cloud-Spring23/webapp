@@ -56,7 +56,7 @@ source "amazon-ebs" "my-ami" {
 
   subnet_id = var.subnet
   region   = var.aws_region
-  ami_name = "csye6225"
+  #ami_name = "csye6225"
   profile = "dev"
   ami_users = var.ami_user
  
@@ -89,11 +89,11 @@ build {
 
   provisioner "shell" {
     script = "installation.sh"
-    environment_vars = [
-      "DB_URL=mysql://root:Welcome!22@localhost",
-      "APP_HOST=0.0.0.0",
-      "APP_PORT=5000"
-    ]
+    # environment_vars = [
+    #   "DB_URL=mysql://root:Welcome!22@localhost",
+    #   "APP_HOST=0.0.0.0",
+    #   "APP_PORT=5000" 
+    # ]
   }
 }
 
