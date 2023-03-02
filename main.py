@@ -267,7 +267,7 @@ def fetch_image(product_id, image_id):
     if product.get("owner_user_id") != user_token:
         return Response(str("Forbidden"), status=403, mimetype='application/json')
 
-    resp = DbConfig.get_images(product_id, user_token, image_id)
+    resp = DbConfig.get_images(product_id, image_id)
 
     return Response(json.dumps(resp, default=str), status=200, mimetype='application/json')
 
