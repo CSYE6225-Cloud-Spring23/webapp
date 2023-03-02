@@ -12,6 +12,8 @@ import datetime
 from flask import (Flask, Response, request)
 from TableSchemas import ProductSchema,UserSchema
 import Schemas
+from werkzeug.utils import secure_filename
+
 
 
 
@@ -23,6 +25,8 @@ app = Flask(__name__)
 load_dotenv()
 
 DATABASE_URL = os.getenv("DATABASE_URL")
+
+UPLOAD_FOLDER = os.path.join(app.instance_path, 'uploads')
 
 engine = create_engine(DATABASE_URL)
 
@@ -188,6 +192,112 @@ def update_product(product_id):
         product_id, name, description, sku, manufacturer, quantity)
 
     return Response(str("Product Details  Modified"), status=204, mimetype='application/json')
+
+
+
+
+@app.route("/v1/product/<int:product_id>/image", methods=["GET"])
+def get_all_image(product_id):
+    token = request.headers.get("Authorization")
+    if not token:
+        return Response(str("Bad Request"), status=400, mimetype='application/json')
+
+    user_token = DbConfig.user_validation(token)
+
+    if not user_token:
+        return Response(str("Unauthorized"), status=401, mimetype='application/json')
+
+    product = DbConfig.get_product(product_id)
+    if not product:     
+        return Response(str("Bad Request"), status=400, mimetype='application/json')
+
+    if product.get("owner_user_id") != user_token:
+        return Response(str("Forbidden"), status=403, mimetype='application/json')
+
+    resp = DbConfig.get_images(product_id)
+
+    return Response(json.dumps(resp, default=str), status=200, mimetype='application/json')
+
+
+@app.route("/v1/product/<int:product_id>/image", methods=["POST"])
+def upload_image(product_id):
+    token = request.headers.get("Authorization")
+    if not token:
+        return Response(str("Bad Request"), status=400, mimetype='application/json')
+
+    user_token = DbConfig.user_validation(token)
+
+    if not user_token:
+        return Response(str("Unauthorized"), status=401, mimetype='application/json')
+
+    product = DbConfig.get_product(product_id)
+    if not product:
+        return Response(str("Bad Request"), status=400, mimetype='application/json')
+
+    if product.get("owner_user_id") != user_token:
+        return Response(str("Forbidden"), status=403, mimetype='application/json')
+
+    file_obj = request.files["file"]
+
+    file_path = os.path.join(UPLOAD_FOLDER, secure_filename(file_obj.filename))
+
+    file_obj.save(file_path)
+
+    resp = DbConfig.insert_image_record(file_path, user_token, product_id)
+
+    return Response(json.dumps(resp, default=str), status=200, mimetype='application/json')
+
+
+
+@app.route("/v1/product/<int:product_id>/image/<int:image_id>")
+def fetch_image(product_id, image_id):
+    token = request.headers.get("Authorization")
+    if not token:
+        return Response(str("Bad Request"), status=400, mimetype='application/json')
+
+    user_token = DbConfig.user_validation(token)
+
+    if not user_token:
+        return Response(str("Unauthorized"), status=401, mimetype='application/json')
+
+    product = DbConfig.get_product(product_id)
+    if not product:
+        return Response(str("Bad Request"), status=400, mimetype='application/json')
+
+    if product.get("owner_user_id") != user_token:
+        return Response(str("Forbidden"), status=403, mimetype='application/json')
+
+    resp = DbConfig.get_images(product_id, user_token, image_id)
+
+    return Response(json.dumps(resp, default=str), status=200, mimetype='application/json')
+
+
+@app.route("/v1/product/<int:product_id>/image/<int:image_id>", methods=["DELETE"])
+def delete_image(product_id, image_id):
+    token = request.headers.get("Authorization")
+    if not token:
+        return Response(str("Bad Request"), status=400, mimetype='application/json')
+
+    user_token = DbConfig.user_validation(token)
+
+    if not user_token:
+        return Response(str("Unauthorized"), status=401, mimetype='application/json')
+
+    product = DbConfig.get_product(product_id)
+    if not product:
+        return Response(str("Bad Request"), status=400, mimetype='application/json')
+
+    if not DbConfig.get_images(product_id, image_id):
+        return Response(str("Not Found"), status=404, mimetype='application/json')
+
+    if product.get("owner_user_id") != user_token:
+        return Response(str("Forbidden"), status=403, mimetype='application/json')
+
+    resp = DbConfig.delete_image(product_id, image_id, user_token)
+    if resp:
+        return Response(str("OK"), status=204)
+    return Response(str("Error"), status=400)
+
 
 
 
