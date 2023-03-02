@@ -56,7 +56,7 @@ source "amazon-ebs" "my-ami" {
 
   subnet_id = var.subnet
   region   = var.aws_region
-  #ami_name = "csye6225"
+  ami_name = "csye6225"
   profile = "dev"
   ami_users = var.ami_user
  
