@@ -346,13 +346,14 @@ def get_images(product_id, image_id=None):
 
 
 
-def upload_image(image, user_token):
+def upload_image(image, user_token,file_name):
     s3_client = boto3.client("s3")
 
-    # file_object = open(image)
+    
     image_name = os.path.basename(image)
-    key_name = "{0}/{1}".format(user_token, image_name)
+    key_name = "{0}/{1}".format(user_token, file_name)
     s3_client.upload_file(image, Bucket=BUCKET_NAME, Key=key_name)
+    
 
     return key_name
 
@@ -367,16 +368,18 @@ def insert_image_record(image, user_id, product_id):
     
     date_created = datetime.datetime.isoformat(datetime.datetime.now())
     resp_json["date_created"] = date_created
-    resp_json['file_name'] = image_name + date_created
+    image_name, extension = os.path.splitext(image_name)
+    file_name = image_name + date_created +extension
+    resp_json['file_name'] = file_name
 
     
     image_id = fetch_image_id(Image)
     resp_json['image_id'] = image_id
     try:
-        s3_key = upload_image(image, user_id)
+        s3_key = upload_image(image, user_id,file_name)
         resp_json["s3_bucket_path"] = s3_key
         image = Image(image_id=image_id, product_id=product_id,
-                      file_name=image_name, date_created=date_created, s3_bucket_path=s3_key)
+                      file_name=file_name, date_created=date_created, s3_bucket_path=s3_key)
 
         session = Session(engine)
 
