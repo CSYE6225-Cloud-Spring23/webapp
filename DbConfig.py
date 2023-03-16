@@ -55,14 +55,25 @@ def get_user(user_id):
 
 
 
-def fetch_id(model):                                    ##Total number of id count +1 
+def fetch_id(model):                                    
+    session = Session(engine)
+    stmt = select(model).order_by(model.id.desc())
+    objs = session.scalars(stmt)
+    for i in objs:
+        return i.id +1 
+    return 1
+
+
+
+
+
+def fetch_image_id(model):                                    
     session = Session(engine)
     stmt = select(Image).order_by(Image.image_id.desc())
     objs = session.scalars(stmt)
     for i in objs:
-        return i.image_id
+        return i.image_id +1
     return 1
-
 
 
 
@@ -92,7 +103,7 @@ def user_create(first_name, last_name, password, user_name):
         return "Exists"
     except Exception as e:
         print (e)
-        return "Error"                                          ## Why Just Id
+        return "Error"                                          
     resp_json["id"] = _id
     resp_json['account_created'] = account_created
     resp_json['account_updated'] = account_updated
@@ -353,11 +364,13 @@ def insert_image_record(image, user_id, product_id):
 
     resp_json['product_id'] = product_id
     image_name = os.path.basename(image)
-    resp_json['file_name'] = image_name
+    
     date_created = datetime.datetime.isoformat(datetime.datetime.now())
     resp_json["date_created"] = date_created
+    resp_json['file_name'] = image_name + date_created
+
     
-    image_id = fetch_id(Image)
+    image_id = fetch_image_id(Image)
     resp_json['image_id'] = image_id
     try:
         s3_key = upload_image(image, user_id)
