@@ -6,7 +6,7 @@ sudo yum upgrade -y
 # Install mySQL
 sudo amazon-linux-extras install epel -y
 
-sudo yum install https://dev.mysql.com/get/mysql80-community-release-el7-5.noarch.rpm -y
+
 
 sudo yum install mysql -y
 
