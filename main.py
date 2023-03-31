@@ -61,11 +61,18 @@ Schemas.Base.metadata.create_all(engine)
 
 
 
+
+
 def api_hit(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
         statsd_config.incr("api_hit",1)
-        return decorated_function
+        statsd_config.incr(f.__name__, 1)
+        return f(*args, **kwargs)
+    return decorated_function
+
+
+
 
 
 
