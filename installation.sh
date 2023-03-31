@@ -2,6 +2,14 @@
 sudo yum update -y
 sudo yum upgrade -y
 
+sudo yum install amazon-cloudwatch-agent -y
+
+
+##Install Cloud Watch Agent
+
+sudo yum install amazon-cloudwatch-agent -y
+
+
 
 # Install mySQL
 sudo amazon-linux-extras install epel -y
