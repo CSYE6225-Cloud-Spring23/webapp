@@ -29,6 +29,13 @@ sudo yum install python3-devel -y
 
 unzip webapp.zip
 
+sudo /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl \
+    -a fetch-config \
+    -m ec2 \
+    -c file:/home/ec2-user/cloud_watch.json \
+    -s
+
+
 pip3 install -r requirements.txt
 
 sudo cp /home/ec2-user/webapp.service /etc/systemd/system/webapp.service
