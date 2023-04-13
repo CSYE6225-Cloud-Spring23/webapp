@@ -57,7 +57,7 @@ source "amazon-ebs" "my-ami" {
 
   subnet_id = var.subnet
   region   = var.aws_region
-  ami_name = "csye6225"
+  ami_name = "csye6225-${formatdate("YYYY-MM-DD-hhmmss",timestamp())}"
   profile = "dev"
   ami_users = var.ami_user
  
@@ -96,6 +96,14 @@ build {
     #   "APP_PORT=5000" 
     # ]
   }
+
+
+
+post-processor "manifest"{
+
+output = "manifest.json"
+strip_path = true 
 }
 
+}
 
