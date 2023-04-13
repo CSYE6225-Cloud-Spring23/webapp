@@ -38,7 +38,7 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_DEMO }}
           aws-region: "us-east-1"
 
-     - name: Copying ami Artifacts and Launching Template
+    - name: Copying ami Artifacts and Launching Template
         run: |
           AMI_ID=$(jq -r '.builds[-1].artifact_id' manifest.json | cut -d ":" -f2)
           echo $AMI_ID
@@ -49,5 +49,5 @@ jobs:
           aws ec2 create-launch-template-version --launch-template-id $LT_ID --version-description WebVersion2 --source-version 1 --launch-template-data "ImageId=$AMI_ID"
           aws autoscaling update-auto-scaling-group --auto-scaling-group-name csye6225-asg-spring2023 --launch-template LaunchTemplateId=$LT_ID,Version='$Latest'
       
-     - name: Refreshing Instances
+    - name: Refreshing Instances
         run: aws autoscaling start-instance-refresh --auto-scaling-group-name csye6225-asg-spring2023
