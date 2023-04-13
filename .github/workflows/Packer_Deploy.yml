@@ -33,7 +33,7 @@ jobs:
 
     - name: Set AWS Demo credentials
       uses: aws-actions/configure-aws-credentials@v1
-        with:
+      with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID_DEMO }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_DEMO }}
           aws-region: "us-east-1"
