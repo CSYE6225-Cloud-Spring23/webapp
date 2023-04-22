@@ -128,6 +128,9 @@ def create_user():
 
 
 
+
+
+
 @app.route('/v1/user/<int:user_id>', methods=['GET', 'PUT'])
 @api_hit
 def fetch_user(user_id):
@@ -158,6 +161,54 @@ def fetch_user(user_id):
         DbConfig.modify_user(user_id, first_name, last_name, password)
         app.logger.info("Updated The User")
         return Response(str("Updated The User"), status=204, mimetype='application/json')
+
+
+
+@app.route('/v2/user/<int:user_id>', methods=['GET', 'PUT'])
+@api_hit
+def fetch_user(user_id):
+    
+    token = request.headers.get("Authorization")
+    if not token:
+        return Response(str("Bad Request"), status=400, mimetype='application/json')
+    user_token = DbConfig.user_validation(token)
+    if user_token != user_id:
+        app.logger.info("Unauthorized")
+        return Response(str("Unauthorized"), status=401, mimetype='application/json')
+
+    if request.method == 'GET':
+        result = DbConfig.get_user(user_id)
+
+        print(result)
+        app.logger.info("User Fetch Ok")
+        return Response(json.dumps(result, default=str), status=200, mimetype='application/json')
+
+    if request.method == 'PUT':
+        if request.json.keys() - set(["first_name", "last_name", "password"]):
+            return Response(str("Bad Request"), status=400, mimetype='application/json')
+
+        first_name = request.json.get('first_name')
+        last_name = request.json.get('last_name')
+        password = request.json.get('password')
+
+        DbConfig.modify_user(user_id, first_name, last_name, password)
+        app.logger.info("Updated The User")
+        return Response(str("Updated The User"), status=204, mimetype='application/json')
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
