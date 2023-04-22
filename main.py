@@ -97,7 +97,7 @@ def healthz():
     return Response(str("Server is Up and Running!"), status=200, mimetype='application/json')
 
 
-@app.route('/v1/user', methods=['POST'])
+@app.route('/v2/user', methods=['POST'])
 @api_hit
 def create_user():
     first_name = request.json.get('first_name')
@@ -131,7 +131,7 @@ def create_user():
 
 
 
-@app.route('/v1/user/<int:user_id>', methods=['GET', 'PUT'])
+@app.route('/v2/user/<int:user_id>', methods=['GET', 'PUT'])
 @api_hit
 def fetch_user(user_id):
     
@@ -168,7 +168,7 @@ def fetch_user(user_id):
 
 
 
-@app.route("/v1/product/", methods=["POST"])
+@app.route("/v2/product/", methods=["POST"])
 @api_hit
 def create_product():
 
@@ -195,7 +195,7 @@ def create_product():
 
 
 
-@app.route('/v1/product/<int:product_id>')
+@app.route('/v2/product/<int:product_id>')
 @api_hit
 def get_product(product_id):
     product = DbConfig.get_product(product_id)
@@ -205,7 +205,7 @@ def get_product(product_id):
     return Response(json.dumps(product, default=str), status=200, mimetype='application/json')
 
 
-@app.route("/v1/product/<int:product_id>", methods=["DELETE"])
+@app.route("/v2/product/<int:product_id>", methods=["DELETE"])
 @api_hit
 def delete_product(product_id):
     token = request.headers.get("Authorization")
@@ -228,7 +228,7 @@ def delete_product(product_id):
     return Response(str("Product has been Deleted"), status=204, mimetype='application/json')
 
 
-@app.route("/v1/product/<int:product_id>", methods=["PUT", "PATCH"])
+@app.route("/v2/product/<int:product_id>", methods=["PUT", "PATCH"])
 @api_hit
 def update_product(product_id):
     token = request.headers.get("Authorization")
@@ -261,7 +261,7 @@ def update_product(product_id):
 
 
 
-@app.route("/v1/product/<int:product_id>/image", methods=["GET"])
+@app.route("/v2/product/<int:product_id>/image", methods=["GET"])
 @api_hit
 def get_all_image(product_id):
     token = request.headers.get("Authorization")
@@ -286,7 +286,7 @@ def get_all_image(product_id):
     return Response(json.dumps(resp, default=str), status=200, mimetype='application/json')
 
 
-@app.route("/v1/product/<int:product_id>/image", methods=["POST"])
+@app.route("/v2/product/<int:product_id>/image", methods=["POST"])
 @api_hit
 def upload_image(product_id):
     token = request.headers.get("Authorization")
@@ -320,7 +320,7 @@ def upload_image(product_id):
 
 
 
-@app.route("/v1/product/<int:product_id>/image/<int:image_id>")
+@app.route("/v2/product/<int:product_id>/image/<int:image_id>")
 @api_hit
 def fetch_image(product_id, image_id):
     token = request.headers.get("Authorization")
@@ -348,7 +348,7 @@ def fetch_image(product_id, image_id):
     return Response(json.dumps(resp, default=str), status=200, mimetype='application/json')
 
 
-@app.route("/v1/product/<int:product_id>/image/<int:image_id>", methods=["DELETE"])
+@app.route("/v2/product/<int:product_id>/image/<int:image_id>", methods=["DELETE"])
 @api_hit
 def delete_image(product_id, image_id):
     token = request.headers.get("Authorization")
